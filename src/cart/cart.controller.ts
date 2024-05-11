@@ -17,8 +17,10 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Get()
-  findUserCart(@Req() req: AppRequest) {
-    const cart = this.cartService.findOrCreateByUserId(getUserIdFromRequest(req));
+  async findUserCart(@Req() req: AppRequest) {
+    const userId = req.headers['x-user-id'] as string;
+    console.log('userId', userId);
+    const cart = await this.cartService.findOrCreateByUserId(userId);
 
     return {
       statusCode: HttpStatus.OK,
@@ -30,8 +32,10 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Put()
-  updateUserCart(@Req() req: AppRequest, @Body() body) { // TODO: validate body payload...
-    const cart = this.cartService.updateByUserId(getUserIdFromRequest(req), body)
+  async updateUserCart(@Req() req: AppRequest, @Body() body) { // TODO: validate body payload...
+    
+    const userId = req.headers['x-user-id'] as string;
+    const cart =  await this.cartService.updateByUserId(userId, body)
 
     return {
       statusCode: HttpStatus.OK,
@@ -47,7 +51,8 @@ export class CartController {
   // @UseGuards(BasicAuthGuard)
   @Delete()
   clearUserCart(@Req() req: AppRequest) {
-    this.cartService.removeByUserId(getUserIdFromRequest(req));
+    const userId = req.headers['x-user-id'] as string;
+    this.cartService.removeByUserId(userId);
 
     return {
       statusCode: HttpStatus.OK,
@@ -58,9 +63,9 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Post('checkout')
-  checkout(@Req() req: AppRequest, @Body() body) {
-    const userId = getUserIdFromRequest(req);
-    const cart = this.cartService.findByUserId(userId);
+  async checkout(@Req() req: AppRequest, @Body() body) {
+    const userId = req.headers['x-user-id'] as string;
+    const cart = await this.cartService.findByUserId(userId);
 
     if (!(cart && cart.items.length)) {
       const statusCode = HttpStatus.BAD_REQUEST;
